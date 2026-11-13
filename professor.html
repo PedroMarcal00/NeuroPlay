@@ -90,11 +90,11 @@ th:first-child,td:first-child{text-align:left;font-weight:600}
       <p class="aviso" id="vazio" hidden>Nenhum aluno entrou nesta turma ainda. Passe o código aos alunos.</p>
       <div class="tabela" id="tabela" hidden>
         <table>
-          <thead><tr><th>Aluno</th><th>Moedas</th><th>Matemática</th><th>Português</th><th>Ciências</th><th>História</th><th>Geografia</th><th>★ Estrelas</th></tr></thead>
+          <thead><tr><th>Aluno</th><th>Moedas</th><th>Matemática</th><th>Português</th><th>Ciências</th><th>História</th><th>Geografia</th></tr></thead>
           <tbody id="corpo"></tbody>
         </table>
       </div>
-      <p class="aviso">As colunas dos mapas mostram quantas fases cada aluno já concluiu. Esses dados (primeiro nome e progresso) são para acompanhamento pedagógico: não compartilhe fora da escola.</p>
+      <p class="aviso">As colunas dos mapas mostram quantas das 10 fases (a última é o chefão) cada aluno já concluiu. Esses dados (primeiro nome e progresso) são para acompanhamento pedagógico: não compartilhe fora da escola.</p>
     </section>
     <p class="erro" id="erro-painel" role="alert"></p>
   </div>
@@ -188,8 +188,7 @@ async function escolher(id) {
     corpo.append(h('tr', {},
       h('td', { textContent: a.nome }),
       h('td', { textContent: a.moedas }),
-      MAPAS.map(m => h('td', { textContent: p.filter(x => x.mapa === m && x.concluida).length || '–' })),
-      h('td', { textContent: p.reduce((soma, x) => soma + (x.estrelas || 0), 0) })));
+      MAPAS.map(m => { const n = p.filter(x => x.mapa === m && x.concluida).length; return h('td', { textContent: n ? n + '/10' : '–' }); })));
   });
 }
 
