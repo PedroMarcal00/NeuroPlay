@@ -19,7 +19,7 @@ h1{margin:0;font-size:1.9rem;text-shadow:0 3px 0 rgba(43,35,80,.45)}
 h2{margin:0;font-size:1.35rem}
 .card{background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);padding:20px 24px;display:grid;gap:14px}
 .card[hidden],[hidden]{display:none!important}
-#login{max-width:460px;margin:8vh auto 0;width:100%}
+#login,#solicitar{max-width:460px;margin:8vh auto 0;width:100%}
 label{display:grid;gap:6px;font-weight:600}
 input{font:inherit;font-size:1.1rem;padding:10px 14px;border:3px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);width:100%}
 button{font:inherit;font-size:1.1rem;font-weight:700;padding:10px 18px;border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);cursor:pointer;background:#fff;color:var(--ink)}
@@ -29,6 +29,10 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--blue);outline-o
 .principal{background:var(--yellow)}
 .linha{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
 .linha label{flex:1;min-width:220px}
+.ok{margin:0;color:#1f7a45;font-weight:600;font-size:1rem}
+a.zap{display:block;text-align:center;text-decoration:none;font:inherit;font-size:1.2rem;font-weight:700;padding:14px 18px;border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);background:#25d366;color:#0b2e17}
+a.zap:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+details.card summary{cursor:pointer;font-weight:700;font-size:1.15rem}
 .erro{margin:0;min-height:1.2em;color:#a3231c;font-weight:600;font-size:1rem}
 .aviso{margin:0;color:var(--muted);font-size:.95rem;line-height:1.4}
 .caixa-codigo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -70,8 +74,28 @@ th:first-child,td:first-child{text-align:left;font-weight:600}
     <label>Senha <input id="senha" type="password" autocomplete="current-password"></label>
     <p class="erro" id="erro-login" role="alert"></p>
     <button class="principal" type="submit" id="entrar">Entrar</button>
-    <p class="aviso">As contas de professor são criadas pela administração do projeto.</p>
+    <button type="button" id="abrir-solicitacao">Solicitar acesso</button>
+    <p class="aviso">Ainda não tem conta? Peça acesso: a administração confere o pedido e libera.</p>
   </form>
+
+  <section class="card" id="solicitar" hidden>
+    <h2>Solicitar acesso</h2>
+    <form id="form-solicitar" novalidate style="display:grid;gap:14px">
+      <label>Seu nome <input id="sol-nome" maxlength="60" autocomplete="name"></label>
+      <label>Seu e-mail <input id="sol-email" type="email" maxlength="120" autocomplete="email"></label>
+      <label>Escola <input id="sol-escola" maxlength="80"></label>
+      <p class="erro" id="erro-solicitar" role="alert"></p>
+      <button class="principal" type="submit" id="enviar-sol">Enviar pedido</button>
+      <button type="button" id="voltar-login">Voltar</button>
+      <p class="aviso">Usamos esses dados só para liberar o seu acesso.</p>
+    </form>
+    <div id="solicitado" hidden style="display:grid;gap:14px">
+      <p class="ok" id="resultado-sol" role="status"></p>
+      <a class="zap" id="link-zap" target="_blank" rel="noopener">Abrir o WhatsApp e enviar</a>
+      <p class="aviso">A mensagem já vem pronta. É só tocar em “Enviar” no WhatsApp. Você receberá a resposta com seu acesso por lá.</p>
+      <button type="button" id="voltar-login-2">Voltar ao login</button>
+    </div>
+  </section>
 
   <div id="painel" hidden style="display:grid;gap:18px">
     <form class="card" id="form-turma">
@@ -108,6 +132,16 @@ th:first-child,td:first-child{text-align:left;font-weight:600}
       </div>
       <p class="aviso">As colunas dos mapas mostram quantas das 10 fases (a última é o chefão) cada aluno já concluiu. Esses dados (primeiro nome e progresso) são para acompanhamento pedagógico: não compartilhe fora da escola.</p>
     </section>
+    <details class="card" id="cartao-senha">
+      <summary>Trocar minha senha</summary>
+      <form id="form-senha" novalidate style="display:grid;gap:12px;margin-top:12px">
+        <label>Nova senha (mínimo 8 caracteres) <input id="nova-senha" type="password" autocomplete="new-password"></label>
+        <label>Repita a nova senha <input id="nova-senha2" type="password" autocomplete="new-password"></label>
+        <p class="erro" id="erro-senha" role="alert"></p>
+        <p class="ok" id="ok-senha" role="status"></p>
+        <button class="principal" type="submit" id="salvar-senha">Salvar nova senha</button>
+      </form>
+    </details>
     <p class="erro" id="erro-painel" role="alert"></p>
   </div>
 </main>
@@ -131,6 +165,7 @@ function h(tag, props = {}, ...filhos) {
 }
 const msg = (sel, t) => { $(sel).textContent = t || ''; };
 function mostrar(painel) {
+  $('#solicitar').hidden = true;
   $('#login').hidden = painel;
   $('#painel').hidden = !painel;
   $('#sessao').hidden = !painel;
@@ -223,6 +258,49 @@ $('#copiar').onclick = async () => {
 };
 $('#atualizar').onclick = () => carregarTurmas();
 $('#sair').onclick = async () => { await db.auth.signOut(); turmas = []; turmaAtual = null; mostrar(false); };
+
+// Número que recebe os pedidos de acesso (55 = Brasil, 43 = DDD).
+const WHATSAPP = '5543984769365';
+
+$('#abrir-solicitacao').onclick = () => {
+  $('#login').hidden = true; $('#solicitar').hidden = false;
+  $('#form-solicitar').hidden = false; $('#solicitado').hidden = true;
+  msg('#erro-solicitar', ''); $('#sol-nome').focus();
+};
+const voltarAoLogin = () => { $('#solicitar').hidden = true; $('#login').hidden = false; };
+$('#voltar-login').onclick = voltarAoLogin;
+$('#voltar-login-2').onclick = voltarAoLogin;
+
+$('#form-solicitar').addEventListener('submit', async e => {
+  e.preventDefault(); msg('#erro-solicitar', '');
+  const nome = $('#sol-nome').value.trim(), email = $('#sol-email').value.trim(), escola = $('#sol-escola').value.trim();
+  if (nome.length < 2) return msg('#erro-solicitar', 'Escreva o seu nome.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return msg('#erro-solicitar', 'Confira o e-mail.');
+  if (escola.length < 2) return msg('#erro-solicitar', 'Escreva o nome da escola.');
+  $('#enviar-sol').disabled = true;
+  const { data, error } = await db.rpc('solicitar_acesso', { p_nome: nome, p_email: email, p_escola: escola });
+  $('#enviar-sol').disabled = false;
+  const texto = 'Olá! Sou ' + nome + ', da escola ' + escola + '. Quero acesso ao painel do professor do NeuroPlay. Meu e-mail: ' + email;
+  $('#link-zap').href = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(texto);
+  $('#form-solicitar').hidden = true; $('#solicitado').hidden = false;
+  $('#resultado-sol').textContent =
+    (error || data === 'limite' || data === 'dados_invalidos') ? 'Não consegui registrar o pedido no sistema, mas você ainda pode enviá-lo pelo WhatsApp.'
+    : data === 'ja_solicitado' ? 'Seu pedido já estava registrado. Se ainda não avisou, envie a mensagem no WhatsApp.'
+    : 'Pedido registrado! Falta só um passo: toque no botão abaixo e envie a mensagem no WhatsApp.';
+});
+
+$('#form-senha').addEventListener('submit', async e => {
+  e.preventDefault(); msg('#erro-senha', ''); msg('#ok-senha', '');
+  const a = $('#nova-senha').value, b = $('#nova-senha2').value;
+  if (a.length < 8) return msg('#erro-senha', 'Use pelo menos 8 caracteres.');
+  if (a !== b) return msg('#erro-senha', 'As duas senhas não são iguais.');
+  $('#salvar-senha').disabled = true;
+  const { error } = await db.auth.updateUser({ password: a });
+  $('#salvar-senha').disabled = false;
+  if (error) return msg('#erro-senha', /same|different/i.test(error.message) ? 'Escolha uma senha diferente da atual.' : 'Não deu para trocar a senha. Tente de novo.');
+  $('#form-senha').reset();
+  msg('#ok-senha', 'Senha trocada com sucesso.');
+});
 
 (async () => {
   const { data: { session } } = await db.auth.getSession();
