@@ -202,20 +202,14 @@ $('#form').addEventListener('submit', async e => {
       const { error } = await db.auth.signInWithPassword({ email, password });
       if (error) throw new Error('Não achei esse perfil. Confira o código, o nome e as figuras.');
     } else {
-      const { data, error } = await db.auth.signUp({ email, password });
-      if (error) {
-        throw new Error(/registered|exists/i.test(error.message)
-          ? 'Já existe um jogador com esse nome nesta turma. Escreva também a inicial do sobrenome, como Lucas M.'
-          : 'Não deu para criar o perfil. Tente de novo.');
-      }
-      if (!data.session) { console.error('Sem sessão: desative "Confirm email" no Supabase.'); throw new Error('Não deu para criar o perfil. Avise seu professor.'); }
-      const { data: turmaId } = await db.rpc('buscar_turma', { p_codigo: codigo });
-      if (!turmaId) {
-        await db.rpc('apagar_meu_perfil'); await db.auth.signOut();
-        throw new Error('Esse código de turma não existe. Peça o código ao professor.');
-      }
-      const { error: e2 } = await db.from('alunos').insert({ id: data.user.id, nome, turma_id: turmaId });
-      if (e2) { console.error(e2); throw new Error('Não deu para salvar seu perfil. Tente de novo.'); }
+      // O cadastro é feito no servidor: valida o código da turma e cria o login (sem e-mail de confirmação).
+      const { data: res, error } = await db.rpc('registrar_aluno', { p_codigo: codigo, p_nome: nome, p_email: email, p_senha: password });
+      if (error) { console.error(error); throw new Error('Não deu para criar o perfil. Tente de novo.'); }
+      if (res === 'turma_invalida') throw new Error('Esse código de turma não existe. Peça o código ao professor.');
+      if (res === 'nome_repetido') throw new Error('Já existe um jogador com esse nome nesta turma. Escreva também a inicial do sobrenome, como Lucas M.');
+      if (res !== 'ok') throw new Error('Confira o código da turma e o seu nome.');
+      const { error: e2 } = await db.auth.signInWithPassword({ email, password });
+      if (e2) { console.error(e2); throw new Error('Perfil criado, mas não deu para entrar. Use "Já tenho perfil".'); }
     }
     await entrar();
   } catch (err) { erro(err.message); }
