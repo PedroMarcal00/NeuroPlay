@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroPlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--ink:#2b2350;--card:#fffdf7;--yellow:#ffd21f;--red:#e8332a;--blue:#2f6fed;--muted:#6b6590}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;font-size:20px;color:var(--ink);background:linear-gradient(#bb94e8,#8d69cb 80%);overflow:hidden}
+#app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:2vh 16px}
+.fundo{position:fixed;left:0;bottom:0;width:100%;height:34vh;z-index:0}
+.logo{width:min(720px,86vw);max-height:48vh;height:auto;transition:width .25s}
+.compacto .logo{width:min(420px,60vw);max-height:30vh}
+.card{width:min(540px,94vw);background:var(--card);border:4px solid var(--ink);border-radius:26px;box-shadow:0 8px 0 var(--ink);padding:22px 26px;display:grid;gap:14px}
+.card[hidden]{display:none}
+h1{margin:0;font-size:1.6rem}
+label{display:grid;gap:6px;font-weight:600}
+input{font:inherit;font-size:1.3rem;padding:10px 14px;border:3px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink)}
+button{font:inherit;font-size:1.35rem;font-weight:700;padding:12px 18px;border:3px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 var(--ink);cursor:pointer;background:#fff;color:var(--ink)}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+button:disabled{opacity:.6;cursor:wait}
+button:focus-visible,input:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.principal{background:var(--yellow)}
+.perigo{background:#fff;color:#a3231c;font-size:1rem;padding:8px 14px}
+.linha{display:flex;gap:12px;flex-wrap:wrap}
+.linha>*{flex:1}
+.slots{display:flex;gap:10px;justify-content:center}
+.slot{width:64px;height:64px;border:3px dashed var(--ink);border-radius:16px;display:grid;place-items:center;font-size:2rem;background:#fff}
+.figs{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.figs button{font-size:1.7rem;padding:6px 0;box-shadow:0 3px 0 var(--ink)}
+.aviso{margin:0;font-size:.9rem;color:var(--muted);line-height:1.35}
+.erro{margin:0;min-height:1.3em;color:#a3231c;font-weight:600;font-size:1rem}
+@media (prefers-reduced-motion:reduce){.logo{transition:none}}
+</style>
+</head>
+<body>
+
+<svg class="fundo" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
+  <g fill="#fff" opacity=".35"><ellipse cx="180" cy="70" rx="90" ry="26"/><ellipse cx="240" cy="58" rx="60" ry="24"/><ellipse cx="930" cy="40" rx="100" ry="28"/><ellipse cx="1000" cy="28" rx="60" ry="22"/></g>
+  <path d="M0 210 Q250 90 520 190 T1200 150 V300 H0Z" fill="#9d7ad8"/>
+  <path d="M0 260 Q300 170 640 245 T1200 215 V300 H0Z" fill="#7c5bb8"/>
+</svg>
+
+<div id="app">
+  <svg class="logo" viewBox="20 20 800 450" role="img" aria-label="NeuroPlay">
+    <defs>
+      <!-- Efeito de adesivo: borda branca em volta de tudo + sombra -->
+      <filter id="adesivo" x="-6%" y="-6%" width="112%" height="112%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius="8" result="d"/>
+        <feFlood flood-color="#fff" result="b"/>
+        <feComposite in="b" in2="d" operator="in" result="borda"/>
+        <feMerge result="m"><feMergeNode in="borda"/><feMergeNode in="SourceGraphic"/></feMerge>
+        <feDropShadow in="m" dx="6" dy="9" stdDeviation="0" flood-color="#2b1f5c" flood-opacity=".3"/>
+      </filter>
+      <g id="macaco">
+        <path d="M34 128 Q86 142 92 112 Q94 98 80 96" fill="none" stroke="#8d5a2c" stroke-width="14" stroke-linecap="round"/>
+        <ellipse cy="92" rx="44" ry="52" fill="#a96d37"/>
+        <ellipse cy="100" rx="28" ry="36" fill="#f0cda0"/>
+        <ellipse cx="-26" cy="140" rx="20" ry="11" fill="#8d5a2c"/><ellipse cx="26" cy="140" rx="20" ry="11" fill="#8d5a2c"/>
+        <ellipse cx="-46" cy="98" rx="12" ry="30" fill="#8d5a2c" transform="rotate(8 -46 98)"/>
+        <circle cx="-45" cy="-4" r="18" fill="#8d5a2c"/><circle cx="-45" cy="-4" r="9" fill="#f0cda0"/>
+        <circle cx="45" cy="-4" r="18" fill="#8d5a2c"/><circle cx="45" cy="-4" r="9" fill="#f0cda0"/>
+        <path d="M-6 -38 Q2 -60 14 -38Z" fill="#8d5a2c"/>
+        <ellipse rx="46" ry="42" fill="#a96d37"/>
+        <path d="M0 -2 Q-12 -22 -26 -10 Q-34 8 -16 26 Q0 36 16 26 Q34 8 26 -10 Q12 -22 0 -2Z" fill="#f0cda0"/>
+        <circle cx="-13" cy="-2" r="5.5" fill="#33253a"/><circle cx="13" cy="-2" r="5.5" fill="#33253a"/>
+        <circle cx="-11.3" cy="-3.8" r="1.8" fill="#fff"/><circle cx="14.7" cy="-3.8" r="1.8" fill="#fff"/>
+        <ellipse cx="-4" cy="10" rx="2" ry="2.6" fill="#a96d37"/><ellipse cx="4" cy="10" rx="2" ry="2.6" fill="#a96d37"/>
+        <circle cx="-25" cy="13" r="6" fill="#ff8fa0" opacity=".55"/><circle cx="25" cy="13" r="6" fill="#ff8fa0" opacity=".55"/>
+        <path d="M-10 18 Q0 28 10 18" fill="none" stroke="#33253a" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+      <g id="pinguim">
+        <ellipse cx="-16" cy="86" rx="16" ry="8" fill="#ff9d1c"/><ellipse cx="16" cy="86" rx="16" ry="8" fill="#ff9d1c"/>
+        <path d="M-40 -10 Q-72 22 -52 64 Q-38 48 -34 18Z" fill="#2c2a63"/>
+        <path d="M40 -10 Q72 22 52 64 Q38 48 34 18Z" fill="#2c2a63"/>
+        <path d="M-42 20 Q-46 -62 0 -66 Q46 -62 42 20 Q42 84 0 86 Q-42 84 -42 20Z" fill="#3b3880"/>
+        <path d="M-26 28 Q-28 -4 0 -4 Q28 -4 26 28 Q26 74 0 78 Q-26 74 -26 28Z" fill="#fff"/>
+        <ellipse cx="-15" cy="-26" rx="14" ry="13" fill="#fff"/><ellipse cx="15" cy="-26" rx="14" ry="13" fill="#fff"/>
+        <circle cx="-14" cy="-27" r="5" fill="#33253a"/><circle cx="14" cy="-27" r="5" fill="#33253a"/>
+        <circle cx="-12.4" cy="-28.8" r="1.7" fill="#fff"/><circle cx="15.6" cy="-28.8" r="1.7" fill="#fff"/>
+        <circle cx="-28" cy="-14" r="5" fill="#ff8fa0" opacity=".6"/><circle cx="28" cy="-14" r="5" fill="#ff8fa0" opacity=".6"/>
+        <path d="M-10 -14 Q0 -22 10 -14 Q5 -2 0 0 Q-5 -2 -10 -14Z" fill="#ff9d1c"/>
+      </g>
+    </defs>
+    <g filter="url(#adesivo)">
+      <g fill="#a8dcff"><ellipse cx="290" cy="175" rx="115" ry="90"/><ellipse cx="450" cy="150" rx="160" ry="92"/><ellipse cx="610" cy="175" rx="115" ry="90"/><ellipse cx="450" cy="200" rx="250" ry="70"/></g>
+      <g fill="#ffc12e"><rect x="215" y="275" width="470" height="150"/><circle cx="215" cy="305" r="42"/><circle cx="215" cy="395" r="42"/><circle cx="685" cy="305" r="42"/><circle cx="685" cy="395" r="42"/></g>
+      <use href="#macaco" transform="translate(125 165)"/>
+      <g font-family="Fredoka,'Trebuchet MS',sans-serif" font-weight="700" font-size="150" stroke-linejoin="round" lengthAdjust="spacingAndGlyphs">
+        <text x="215" y="224" fill="#5b46a8" stroke="#5b46a8" stroke-width="14" textLength="470">Neuro</text>
+        <text x="215" y="212" fill="#ffd21f" stroke="#fff" stroke-width="12" paint-order="stroke" textLength="470">Neuro</text>
+        <text x="280" y="407" fill="#9c1f2b" stroke="#9c1f2b" stroke-width="14" textLength="340">Play</text>
+        <text x="280" y="395" fill="#e8332a" stroke="#fff" stroke-width="12" paint-order="stroke" textLength="340">Play</text>
+      </g>
+      <path d="M150 220 Q190 215 238 178" fill="none" stroke="#8d5a2c" stroke-width="20" stroke-linecap="round"/>
+      <circle cx="240" cy="176" r="14" fill="#8d5a2c"/>
+      <use href="#pinguim" transform="translate(672 350) rotate(-12 0 86) scale(.95)"/>
+    </g>
+  </svg>
+
+  <section class="card" data-tela="inicio">
+    <button class="principal" id="btn-novo">Sou novo aqui</button>
+    <button id="btn-entrar">Já tenho perfil</button>
+  </section>
+
+  <form class="card" data-tela="form" hidden id="form" novalidate>
+    <h1 id="titulo"></h1>
+    <label>Código da turma
+      <input id="codigo" autocomplete="off" maxlength="12" placeholder="Seu professor entrega">
+    </label>
+    <label>Seu primeiro nome
+      <input id="nome" autocomplete="off" maxlength="20">
+    </label>
+    <div>
+      <div style="font-weight:600;margin-bottom:6px">Escolha 3 figuras para entrar depois</div>
+      <div class="slots" id="slots" aria-live="polite"></div>
+    </div>
+    <div class="figs" id="figs"></div>
+    <p class="aviso" id="aviso">Guardamos só seu primeiro nome e seu progresso no jogo, para seu professor acompanhar. Você pode apagar seu perfil quando quiser.</p>
+    <p class="erro" id="erro" role="alert"></p>
+    <div class="linha">
+      <button type="button" id="voltar">Voltar</button>
+      <button type="submit" class="principal" id="enviar"></button>
+    </div>
+  </form>
+
+  <section class="card" data-tela="bemvindo" hidden>
+    <h1 id="oi"></h1>
+    <button class="principal" id="continuar">Jogar</button>
+    <button class="perigo" id="apagar">Apagar meu perfil</button>
+  </section>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wafiswmrrpylcoynugen.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhZmlzd21ycnB5bGNveW51Z2VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1MTMzMDQsImV4cCI6MjExMDA4OTMwNH0.toBeYIHc6Jusc63Wd-hDCYkX8YC0kviiRmug2eu5ll8';
+// persistSession:false → em computador compartilhado, o próximo aluno não entra no perfil do anterior.
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+
+const FIGS = ['🐶','🌟','🍎','🚀','🌈','🎈','🍀','🐢','⚽'];
+const NOMES_FIGS = ['cachorro','estrela','maçã','foguete','arco-íris','balão','trevo','tartaruga','bola'];
+let modo = 'novo', pin = [];
+const $ = s => document.querySelector(s);
+
+function tela(id) {
+  document.querySelectorAll('[data-tela]').forEach(e => e.hidden = e.dataset.tela !== id);
+  document.body.classList.toggle('compacto', id !== 'inicio');
+}
+function erro(msg) { $('#erro').textContent = msg || ''; }
+
+function desenharPin() {
+  $('#slots').innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('div');
+    s.className = 'slot';
+    s.textContent = pin[i] !== undefined ? FIGS[pin[i]] : '';
+    $('#slots').appendChild(s);
+  }
+}
+FIGS.forEach((f, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = f; b.setAttribute('aria-label', NOMES_FIGS[i]);
+  b.onclick = () => { if (pin.length < 3) { pin.push(i); desenharPin(); } };
+  $('#figs').appendChild(b);
+});
+const limpar = document.createElement('button');
+limpar.type = 'button'; limpar.textContent = '⌫'; limpar.setAttribute('aria-label', 'apagar última figura');
+limpar.onclick = () => { pin.pop(); desenharPin(); };
+$('#figs').appendChild(limpar);
+$('#figs').style.gridTemplateColumns = 'repeat(10,1fr)';
+
+function abrirForm(m) {
+  modo = m; pin = []; desenharPin(); erro('');
+  $('#form').reset();
+  $('#titulo').textContent = m === 'novo' ? 'Criar meu perfil' : 'Entrar no meu perfil';
+  $('#enviar').textContent = m === 'novo' ? 'Criar perfil' : 'Entrar';
+  $('#aviso').hidden = m !== 'novo';
+  tela('form'); $('#codigo').focus();
+}
+$('#btn-novo').onclick = () => abrirForm('novo');
+$('#btn-entrar').onclick = () => abrirForm('login');
+$('#voltar').onclick = () => tela('inicio');
+
+const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const emailDe = (codigo, nome) => `${norm(codigo)}.${norm(nome)}@neuroplay.game`;
+const senhaDe = () => 'np-' + pin.map(i => i + 1).join('');
+
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault(); erro('');
+  const codigo = $('#codigo').value.trim(), nome = $('#nome').value.trim();
+  if (codigo.length < 4) return erro('Digite o código da turma.');
+  if (norm(nome).length < 2) return erro('Escreva seu primeiro nome.');
+  if (pin.length < 3) return erro('Escolha 3 figuras.');
+  const email = emailDe(codigo, nome), password = senhaDe();
+  $('#enviar').disabled = true;
+  try {
+    if (modo === 'login') {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) throw new Error('Não achei esse perfil. Confira o código, o nome e as figuras.');
+    } else {
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) {
+        throw new Error(/registered|exists/i.test(error.message)
+          ? 'Já existe um jogador com esse nome nesta turma. Escreva também a inicial do sobrenome, como Lucas M.'
+          : 'Não deu para criar o perfil. Tente de novo.');
+      }
+      if (!data.session) { console.error('Sem sessão: desative "Confirm email" no Supabase.'); throw new Error('Não deu para criar o perfil. Avise seu professor.'); }
+      const { data: turmaId } = await db.rpc('buscar_turma', { p_codigo: codigo });
+      if (!turmaId) {
+        await db.rpc('apagar_meu_perfil'); await db.auth.signOut();
+        throw new Error('Esse código de turma não existe. Peça o código ao professor.');
+      }
+      const { error: e2 } = await db.from('alunos').insert({ id: data.user.id, nome, turma_id: turmaId });
+      if (e2) { console.error(e2); throw new Error('Não deu para salvar seu perfil. Tente de novo.'); }
+    }
+    await entrar();
+  } catch (err) { erro(err.message); }
+  finally { $('#enviar').disabled = false; }
+});
+
+async function entrar() {
+  const { data: aluno } = await db.from('alunos').select('id,nome,personagem,moedas,turma_id').maybeSingle();
+  $('#oi').textContent = 'Oi, ' + (aluno ? aluno.nome : '') + '!';
+  tela('bemvindo');
+  // Ponto de ligação com o jogo: escute este evento para abrir o mapa.
+  window.dispatchEvent(new CustomEvent('neuroplay:login', { detail: aluno }));
+}
+$('#continuar').onclick = () => window.dispatchEvent(new CustomEvent('neuroplay:jogar'));
+
+async function sair() { await db.auth.signOut(); tela('inicio'); }
+async function apagarPerfil() {
+  if (!confirm('Apagar seu perfil e todo o seu progresso? Isso não pode ser desfeito.')) return;
+  const { error } = await db.rpc('apagar_meu_perfil');
+  if (error) return alert('Não deu para apagar agora. Tente de novo.');
+  await db.auth.signOut(); tela('inicio');
+}
+$('#apagar').onclick = apagarPerfil;
+window.NeuroPlay = { db, sair, apagarPerfil };
+
+desenharPin(); tela('inicio');
+</script>
+</body>
+</html>

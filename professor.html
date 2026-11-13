@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>NeuroPlay · Painel do professor</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--ink:#2b2350;--card:#fffdf7;--yellow:#ffd21f;--blue:#2f6fed;--muted:#6b6590}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;font-size:18px;color:var(--ink);background:linear-gradient(#bb94e8,#8d69cb) fixed;padding:22px 14px 48px}
+main{max-width:980px;margin:0 auto;display:grid;gap:18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#fff}
+h1{margin:0;font-size:1.9rem;text-shadow:0 3px 0 rgba(43,35,80,.45)}
+h2{margin:0;font-size:1.35rem}
+.card{background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);padding:20px 24px;display:grid;gap:14px}
+.card[hidden],[hidden]{display:none!important}
+#login{max-width:460px;margin:8vh auto 0;width:100%}
+label{display:grid;gap:6px;font-weight:600}
+input{font:inherit;font-size:1.1rem;padding:10px 14px;border:3px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);width:100%}
+button{font:inherit;font-size:1.1rem;font-weight:700;padding:10px 18px;border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);cursor:pointer;background:#fff;color:var(--ink)}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:disabled{opacity:.6;cursor:wait}
+button:focus-visible,input:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.principal{background:var(--yellow)}
+.linha{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.linha label{flex:1;min-width:220px}
+.erro{margin:0;min-height:1.2em;color:#a3231c;font-weight:600;font-size:1rem}
+.aviso{margin:0;color:var(--muted);font-size:.95rem;line-height:1.4}
+.caixa-codigo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#novo-codigo{font-size:2.3rem;font-weight:700;letter-spacing:.18em;background:#fff3b0;border:3px dashed var(--ink);border-radius:16px;padding:6px 18px}
+.turmas{display:flex;gap:10px;flex-wrap:wrap}
+.turma{display:grid;text-align:left;gap:2px;font-weight:600}
+.turma[aria-pressed="true"]{background:var(--yellow)}
+.turma .cod{font-weight:500;font-size:.9rem;color:var(--muted)}
+.tabela{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:8px 10px;text-align:center;border-bottom:2px solid #e9e4f5}
+th{font-size:.9rem;color:var(--muted)}
+th:first-child,td:first-child{text-align:left;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>NeuroPlay · Painel do professor</h1>
+    <div id="sessao" hidden class="linha" style="align-items:center">
+      <span id="ola" style="font-weight:600"></span>
+      <button type="button" id="sair">Sair</button>
+    </div>
+  </header>
+
+  <form class="card" id="login" novalidate>
+    <h2>Entrar</h2>
+    <label>E-mail <input id="email" type="email" autocomplete="username"></label>
+    <label>Senha <input id="senha" type="password" autocomplete="current-password"></label>
+    <p class="erro" id="erro-login" role="alert"></p>
+    <button class="principal" type="submit" id="entrar">Entrar</button>
+    <p class="aviso">As contas de professor são criadas pela administração do projeto.</p>
+  </form>
+
+  <div id="painel" hidden style="display:grid;gap:18px">
+    <form class="card" id="form-turma">
+      <h2>Criar turma</h2>
+      <div class="linha">
+        <label>Nome da turma (opcional)
+          <input id="descricao" maxlength="60" placeholder="Ex.: Sala multiuso — manhã">
+        </label>
+        <button class="principal" type="submit" id="criar">Criar turma</button>
+      </div>
+      <div id="caixa-codigo" class="caixa-codigo" hidden>
+        <span id="novo-codigo"></span>
+        <button type="button" id="copiar">Copiar código</button>
+        <p class="aviso" style="flex:1;min-width:220px">Entregue este código aos alunos. No jogo, eles escolhem “Sou novo aqui” e digitam o código.</p>
+      </div>
+    </form>
+
+    <section class="card">
+      <h2>Minhas turmas</h2>
+      <div class="turmas" id="lista-turmas"></div>
+    </section>
+
+    <section class="card" id="cartao-alunos" hidden>
+      <div class="linha" style="justify-content:space-between;align-items:center">
+        <h2 id="titulo-alunos"></h2>
+        <button type="button" id="atualizar">Atualizar</button>
+      </div>
+      <p class="aviso" id="vazio" hidden>Nenhum aluno entrou nesta turma ainda. Passe o código aos alunos.</p>
+      <div class="tabela" id="tabela" hidden>
+        <table>
+          <thead><tr><th>Aluno</th><th>Moedas</th><th>Matemática</th><th>Português</th><th>Ciências</th><th>História</th><th>Geografia</th><th>★ Estrelas</th></tr></thead>
+          <tbody id="corpo"></tbody>
+        </table>
+      </div>
+      <p class="aviso">As colunas dos mapas mostram quantas fases cada aluno já concluiu. Esses dados (primeiro nome e progresso) são para acompanhamento pedagógico: não compartilhe fora da escola.</p>
+    </section>
+    <p class="erro" id="erro-painel" role="alert"></p>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://wafiswmrrpylcoynugen.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhZmlzd21ycnB5bGNveW51Z2VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1MTMzMDQsImV4cCI6MjExMDA4OTMwNH0.toBeYIHc6Jusc63Wd-hDCYkX8YC0kviiRmug2eu5ll8';
+// A sessão fica só na aba aberta: ao fechar, o professor precisa entrar de novo.
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage } });
+
+const MAPAS = ['matematica', 'portugues', 'ciencias', 'historia', 'geografia'];
+const $ = s => document.querySelector(s);
+let turmas = [], turmaAtual = null;
+
+// Nomes digitados pelos alunos entram sempre como texto (nunca como HTML).
+function h(tag, props = {}, ...filhos) {
+  const e = document.createElement(tag);
+  Object.assign(e, props);
+  filhos.flat().forEach(f => e.append(f));
+  return e;
+}
+const msg = (sel, t) => { $(sel).textContent = t || ''; };
+function mostrar(painel) {
+  $('#login').hidden = painel;
+  $('#painel').hidden = !painel;
+  $('#sessao').hidden = !painel;
+}
+
+$('#login').addEventListener('submit', async e => {
+  e.preventDefault(); msg('#erro-login', '');
+  $('#entrar').disabled = true;
+  const { error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#senha').value });
+  $('#entrar').disabled = false;
+  if (error) return msg('#erro-login', 'E-mail ou senha incorretos.');
+  $('#senha').value = '';
+  await abrirPainel();
+});
+
+async function abrirPainel() {
+  const { data: prof } = await db.from('professores').select('nome').maybeSingle();
+  if (!prof) {
+    await db.auth.signOut(); mostrar(false);
+    return msg('#erro-login', 'Esta conta não é de professor.');
+  }
+  $('#ola').textContent = 'Olá, ' + prof.nome + '!';
+  mostrar(true);
+  await carregarTurmas();
+}
+
+async function carregarTurmas(codigoNovo) {
+  msg('#erro-painel', '');
+  const { data, error } = await db.from('turmas')
+    .select('id,codigo,descricao,criado_em,alunos(count)')
+    .order('criado_em', { ascending: false });
+  if (error) return msg('#erro-painel', 'Não deu para carregar as turmas.');
+  turmas = data;
+  const caixa = $('#lista-turmas'); caixa.replaceChildren();
+  if (!turmas.length) {
+    caixa.append(h('p', { className: 'aviso', textContent: 'Você ainda não criou nenhuma turma.' }));
+    $('#cartao-alunos').hidden = true; return;
+  }
+  turmas.forEach(t => {
+    const n = (t.alunos && t.alunos[0] && t.alunos[0].count) || 0;
+    const b = h('button', { type: 'button', className: 'turma', onclick: () => escolher(t.id) },
+      h('span', { textContent: t.descricao || 'Turma sem nome' }),
+      h('span', { className: 'cod', textContent: t.codigo + ' · ' + n + (n === 1 ? ' aluno' : ' alunos') }));
+    b.dataset.id = t.id;
+    caixa.append(b);
+  });
+  const nova = codigoNovo && turmas.find(t => t.codigo === codigoNovo);
+  const atual = turmas.find(t => t.id === turmaAtual);
+  await escolher((nova || atual || turmas[0]).id);
+}
+
+async function escolher(id) {
+  turmaAtual = id;
+  document.querySelectorAll('.turma').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.id === id)));
+  const t = turmas.find(x => x.id === id);
+  $('#cartao-alunos').hidden = false;
+  $('#titulo-alunos').textContent = 'Alunos · ' + (t.descricao || 'Turma sem nome') + ' (código ' + t.codigo + ')';
+  const { data, error } = await db.from('alunos')
+    .select('id,nome,moedas,progresso(mapa,concluida,estrelas)')
+    .eq('turma_id', id).order('nome');
+  const corpo = $('#corpo'); corpo.replaceChildren();
+  if (error) return msg('#erro-painel', 'Não deu para carregar os alunos.');
+  $('#vazio').hidden = data.length > 0;
+  $('#tabela').hidden = data.length === 0;
+  data.forEach(a => {
+    const p = a.progresso || [];
+    corpo.append(h('tr', {},
+      h('td', { textContent: a.nome }),
+      h('td', { textContent: a.moedas }),
+      MAPAS.map(m => h('td', { textContent: p.filter(x => x.mapa === m && x.concluida).length || '–' })),
+      h('td', { textContent: p.reduce((soma, x) => soma + (x.estrelas || 0), 0) })));
+  });
+}
+
+$('#form-turma').addEventListener('submit', async e => {
+  e.preventDefault(); msg('#erro-painel', '');
+  $('#criar').disabled = true;
+  const { data, error } = await db.rpc('criar_turma', { p_descricao: $('#descricao').value });
+  $('#criar').disabled = false;
+  if (error) return msg('#erro-painel', 'Não deu para criar a turma. Tente de novo.');
+  $('#descricao').value = '';
+  $('#novo-codigo').textContent = data;
+  $('#caixa-codigo').hidden = false;
+  $('#copiar').textContent = 'Copiar código';
+  await carregarTurmas(data);
+});
+
+$('#copiar').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#novo-codigo').textContent); $('#copiar').textContent = 'Copiado!'; }
+  catch { $('#copiar').textContent = 'Selecione e copie o código'; }
+};
+$('#atualizar').onclick = () => carregarTurmas();
+$('#sair').onclick = async () => { await db.auth.signOut(); turmas = []; turmaAtual = null; mostrar(false); };
+
+(async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) await abrirPainel(); else mostrar(false);
+})();
+</script>
+</body>
+</html>
