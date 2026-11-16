@@ -717,7 +717,7 @@
 #np *{box-sizing:border-box}
 #np .np-fundo{position:absolute;left:0;bottom:0;width:100%;height:34vh;z-index:0}
 #np .np-app{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:max(2vh,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(2vh,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
-#np .np-logo{width:min(720px,86vw);max-height:48vh;height:auto;transition:width .25s}
+#np .np-logo{display:block;width:min(720px,86vw);max-height:48vh;height:auto;object-fit:contain;transition:width .25s}
 #np.compacto .np-logo{width:min(420px,60vw);max-height:30vh}
 #np .np-card{width:min(540px,94vw);background:#fffdf7;border:4px solid #2b2350;border-radius:26px;box-shadow:0 8px 0 #2b2350;padding:22px 26px;display:grid;gap:14px;text-align:left}
 #np .np-card[hidden]{display:none}
@@ -786,61 +786,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   <path d="M0 260 Q300 170 640 245 T1200 215 V300 H0Z" fill="#7c5bb8"/>
 </svg>
   <div class="np-app">
-    <svg class="np-logo" viewBox="20 20 800 450" role="img" aria-label="NeuroPlay">
-    <defs>
-      <!-- Efeito de adesivo: borda branca em volta de tudo + sombra -->
-      <filter id="np-adesivo" x="-6%" y="-6%" width="112%" height="112%">
-        <feMorphology in="SourceAlpha" operator="dilate" radius="8" result="d"/>
-        <feFlood flood-color="#fff" result="b"/>
-        <feComposite in="b" in2="d" operator="in" result="borda"/>
-        <feMerge result="m"><feMergeNode in="borda"/><feMergeNode in="SourceGraphic"/></feMerge>
-        <feDropShadow in="m" dx="6" dy="9" stdDeviation="0" flood-color="#2b1f5c" flood-opacity=".3"/>
-      </filter>
-      <g id="np-macaco">
-        <path d="M34 128 Q86 142 92 112 Q94 98 80 96" fill="none" stroke="#8d5a2c" stroke-width="14" stroke-linecap="round"/>
-        <ellipse cy="92" rx="44" ry="52" fill="#a96d37"/>
-        <ellipse cy="100" rx="28" ry="36" fill="#f0cda0"/>
-        <ellipse cx="-26" cy="140" rx="20" ry="11" fill="#8d5a2c"/><ellipse cx="26" cy="140" rx="20" ry="11" fill="#8d5a2c"/>
-        <ellipse cx="-46" cy="98" rx="12" ry="30" fill="#8d5a2c" transform="rotate(8 -46 98)"/>
-        <circle cx="-45" cy="-4" r="18" fill="#8d5a2c"/><circle cx="-45" cy="-4" r="9" fill="#f0cda0"/>
-        <circle cx="45" cy="-4" r="18" fill="#8d5a2c"/><circle cx="45" cy="-4" r="9" fill="#f0cda0"/>
-        <path d="M-6 -38 Q2 -60 14 -38Z" fill="#8d5a2c"/>
-        <ellipse rx="46" ry="42" fill="#a96d37"/>
-        <path d="M0 -2 Q-12 -22 -26 -10 Q-34 8 -16 26 Q0 36 16 26 Q34 8 26 -10 Q12 -22 0 -2Z" fill="#f0cda0"/>
-        <circle cx="-13" cy="-2" r="5.5" fill="#33253a"/><circle cx="13" cy="-2" r="5.5" fill="#33253a"/>
-        <circle cx="-11.3" cy="-3.8" r="1.8" fill="#fff"/><circle cx="14.7" cy="-3.8" r="1.8" fill="#fff"/>
-        <ellipse cx="-4" cy="10" rx="2" ry="2.6" fill="#a96d37"/><ellipse cx="4" cy="10" rx="2" ry="2.6" fill="#a96d37"/>
-        <circle cx="-25" cy="13" r="6" fill="#ff8fa0" opacity=".55"/><circle cx="25" cy="13" r="6" fill="#ff8fa0" opacity=".55"/>
-        <path d="M-10 18 Q0 28 10 18" fill="none" stroke="#33253a" stroke-width="3.5" stroke-linecap="round"/>
-      </g>
-      <g id="np-pinguim">
-        <ellipse cx="-16" cy="86" rx="16" ry="8" fill="#ff9d1c"/><ellipse cx="16" cy="86" rx="16" ry="8" fill="#ff9d1c"/>
-        <path d="M-40 -10 Q-72 22 -52 64 Q-38 48 -34 18Z" fill="#2c2a63"/>
-        <path d="M40 -10 Q72 22 52 64 Q38 48 34 18Z" fill="#2c2a63"/>
-        <path d="M-42 20 Q-46 -62 0 -66 Q46 -62 42 20 Q42 84 0 86 Q-42 84 -42 20Z" fill="#3b3880"/>
-        <path d="M-26 28 Q-28 -4 0 -4 Q28 -4 26 28 Q26 74 0 78 Q-26 74 -26 28Z" fill="#fff"/>
-        <ellipse cx="-15" cy="-26" rx="14" ry="13" fill="#fff"/><ellipse cx="15" cy="-26" rx="14" ry="13" fill="#fff"/>
-        <circle cx="-14" cy="-27" r="5" fill="#33253a"/><circle cx="14" cy="-27" r="5" fill="#33253a"/>
-        <circle cx="-12.4" cy="-28.8" r="1.7" fill="#fff"/><circle cx="15.6" cy="-28.8" r="1.7" fill="#fff"/>
-        <circle cx="-28" cy="-14" r="5" fill="#ff8fa0" opacity=".6"/><circle cx="28" cy="-14" r="5" fill="#ff8fa0" opacity=".6"/>
-        <path d="M-10 -14 Q0 -22 10 -14 Q5 -2 0 0 Q-5 -2 -10 -14Z" fill="#ff9d1c"/>
-      </g>
-    </defs>
-    <g filter="url(#np-adesivo)">
-      <g fill="#a8dcff"><ellipse cx="290" cy="175" rx="115" ry="90"/><ellipse cx="450" cy="150" rx="160" ry="92"/><ellipse cx="610" cy="175" rx="115" ry="90"/><ellipse cx="450" cy="200" rx="250" ry="70"/></g>
-      <g fill="#ffc12e"><rect x="215" y="275" width="470" height="150"/><circle cx="215" cy="305" r="42"/><circle cx="215" cy="395" r="42"/><circle cx="685" cy="305" r="42"/><circle cx="685" cy="395" r="42"/></g>
-      <use href="#np-macaco" transform="translate(125 165)"/>
-      <g font-family="Fredoka,'Trebuchet MS',sans-serif" font-weight="700" font-size="150" stroke-linejoin="round" lengthAdjust="spacingAndGlyphs">
-        <text x="215" y="224" fill="#5b46a8" stroke="#5b46a8" stroke-width="14" textLength="470">Neuro</text>
-        <text x="215" y="212" fill="#ffd21f" stroke="#fff" stroke-width="12" paint-order="stroke" textLength="470">Neuro</text>
-        <text x="280" y="407" fill="#9c1f2b" stroke="#9c1f2b" stroke-width="14" textLength="340">Play</text>
-        <text x="280" y="395" fill="#e8332a" stroke="#fff" stroke-width="12" paint-order="stroke" textLength="340">Play</text>
-      </g>
-      <path d="M150 220 Q190 215 238 178" fill="none" stroke="#8d5a2c" stroke-width="20" stroke-linecap="round"/>
-      <circle cx="240" cy="176" r="14" fill="#8d5a2c"/>
-      <use href="#np-pinguim" transform="translate(672 350) rotate(-12 0 86) scale(.95)"/>
-    </g>
-  </svg>
+    <img class="np-logo" src="logo-neuroplay.webp" width="1200" height="574" alt="NeuroPlay">
     <section class="np-card" data-tela="inicio">
       <button class="np-principal" id="np-btn-novo" type="button">Sou novo aqui</button>
       <button id="np-btn-entrar" type="button">Já tenho perfil</button>
