@@ -859,7 +859,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
         <div class="np-slots" id="np-slots" aria-live="polite"></div>
       </div>
       <div class="np-figs" id="np-figs"></div>
-      <p class="np-aviso" id="np-aviso">Guardamos só seu primeiro nome e seu progresso no jogo, para seu professor acompanhar. Você pode apagar seu perfil quando quiser.</p>
+      <p class="np-aviso" id="np-aviso">Guardamos seu primeiro nome, suas 3 figuras, seu progresso, seus erros e as dicas que você usar, para seu professor acompanhar. Você pode apagar seu perfil quando quiser.</p>
       <p class="np-erro" id="np-erro" role="alert"></p>
       <div class="np-linha">
         <button type="button" id="np-voltar">Voltar</button>
@@ -1416,6 +1416,32 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   let lastMascotMap = -1;
   let wrongCount = 0;
 
+  /* Registro pedagógico (erros e dicas). A camada do Supabase, no script abaixo, define window.npRegistro.
+     O registro nunca pode travar o jogo: qualquer falha aqui é ignorada. */
+  function reg(evento, dados) {
+    try { if (window.npRegistro) window.npRegistro(evento, dados || {}); } catch (e) { /* ignora */ }
+  }
+  function infoPergunta(q) {
+    const chefao = !!(state.boss && isBossPhase());
+    let pergunta, esperada;
+    if (q.type === 'wordsearch') {
+      pergunta = 'Caça-palavras. Dica do jogo: ' + q.hint;
+      esperada = q.word;
+    } else if (q.type === 'order') {
+      pergunta = q.prompt + ' (' + q.instruction + ')';
+      esperada = q.items.join(q.joiner != null ? q.joiner : ' ');
+    } else {
+      pergunta = q.prompt + (q.emoji ? ' ' + q.emoji : '') + (q.speak ? ' [palavra falada: ' + q.speak + ']' : '');
+      esperada = q.options[q.correct];
+    }
+    return {
+      mapa: currentMap().id, fase: state.current + 1, rodada: chefao ? state.boss.idx + 1 : null,
+      tipo: q.type === 'wordsearch' || q.type === 'order' ? q.type : 'choice',
+      pergunta: String(pergunta).slice(0, 200), esperada: String(esperada).slice(0, 120)
+    };
+  }
+  function regInicio(q) { try { reg('inicio', infoPergunta(q)); } catch (e) { /* ignora */ } }
+
   const mapWrapEl = document.getElementById('mapWrap');
   const nodesLayer = document.getElementById('nodesLayer');
   let cardEl = document.getElementById('questionCard');
@@ -1589,6 +1615,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
           progressWrap.children[solutionIndex].textContent = grid[r][c];
           solutionIndex++;
           if (solutionIndex === solution.length) {
+            reg('acerto');
             feedbackEl.className = 'feedback ok';
             feedbackEl.textContent = `✅ Isso! ${q.tip}`;
             state.coins += coinsForCorrect();
@@ -1603,6 +1630,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
           cell.classList.add('cell-wrong');
           setTimeout(() => cell.classList.remove('cell-wrong'), 350);
           wrongTries++;
+          reg('erro', { resposta: grid[r][c] });
+          if (wrongTries >= 4) reg('dica_auto');
           react('calm');
           feedbackEl.className = 'feedback no';
           feedbackEl.textContent = wrongTries >= 4 ? `Dica: ${q.hint}` : 'Quase lá — procure a próxima letra na grade.';
@@ -1620,6 +1649,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
       btn.dataset.idx = originalIndex;
       btn.onclick = () => {
         if (originalIndex === q.correct) {
+          reg('acerto');
           btn.classList.add('correct');
           [...optionsEl.children].forEach(b => b.disabled = true);
           feedbackEl.className = 'feedback ok';
@@ -1634,6 +1664,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
           btn.classList.add('wrong');
           btn.disabled = true;
           wrongCount++;
+          reg('erro', { resposta: optionText });
+          if (wrongCount >= 2) reg('dica_auto');
           react('calm');
           feedbackEl.className = 'feedback no';
           feedbackEl.textContent = wrongCount >= 2 ? `Dica: ${q.tip}` : 'Quase lá — tenta outra alternativa.';
@@ -1715,6 +1747,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
           next++;
           if (next === q.items.length) {
             piecesEl.querySelectorAll('button').forEach(b => b.disabled = true);
+            reg('acerto');
             celebrate(q, feedbackEl, continueBtn);
           } else {
             feedbackEl.className = 'feedback';
@@ -1724,6 +1757,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
           btn.classList.add('wrong');
           setTimeout(() => btn.classList.remove('wrong'), 350);
           wrong++;
+          reg('erro', { resposta: p.text });
+          if (wrong >= 3) reg('dica_auto');
           react('calm');
           feedbackEl.className = 'feedback no';
           feedbackEl.textContent = wrong >= 3 ? `Dica: ${q.hint}` : 'Quase lá — tenta outra peça.';
@@ -1756,6 +1791,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
 
   function drawQuestion(q) {
     wrongCount = 0;
+    regInicio(q);
     if (q.type === 'wordsearch') {
       cardEl.innerHTML = `
         <div class="qa">
@@ -2170,6 +2206,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   }
 
   function giveHint(q) {
+    reg('dica');
     if (q.type === 'choice') {
       const opts = [...document.querySelectorAll('#options .option-btn')]
         .filter(b => !b.disabled && Number(b.dataset.idx) !== q.correct);
@@ -2781,7 +2818,50 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
     timer = setInterval(autosave, 2000);
   }
 
+  /* ---------- registro de erros e dicas (o professor vê no painel) ---------- */
+  const tentativas = new Map();   // registros ainda não enviados
+  let atual = null, enviando = false;
+  const novoId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+
+  // O jogo avisa: inicio (nova pergunta), erro, dica (pediu ao personagem), dica_auto (o jogo mostrou a dica) e acerto.
+  window.npRegistro = function (evento, d) {
+    if (!aluno) return;
+    if (evento === 'inicio') {
+      atual = { id: novoId(), aluno_id: aluno.id, mapa: d.mapa, fase: d.fase, rodada: d.rodada, tipo: d.tipo,
+                pergunta: d.pergunta, esperada: d.esperada, erros: 0, respostas_erradas: [], dicas_pedidas: 0,
+                dica_auto: false, acertou: false, _v: 0 };
+      return;   // só vai para o banco quando houver erro, dica ou acerto
+    }
+    if (!atual) return;
+    if (evento === 'erro') {
+      atual.erros++;
+      if (atual.respostas_erradas.length < 12 && d.resposta != null) atual.respostas_erradas.push(String(d.resposta).slice(0, 60));
+    } else if (evento === 'dica') atual.dicas_pedidas++;
+    else if (evento === 'dica_auto') atual.dica_auto = true;
+    else if (evento === 'acerto') atual.acertou = true;
+    else return;
+    atual._v++;
+    tentativas.set(atual.id, atual);
+  };
+
+  async function enviarTentativas() {
+    if (!aluno || enviando || !tentativas.size) return;
+    enviando = true;
+    const lote = [...tentativas.values()].slice(0, 50).map(t => ({ t, v: t._v, linha: {
+      id: t.id, aluno_id: t.aluno_id, mapa: t.mapa, fase: t.fase, rodada: t.rodada, tipo: t.tipo,
+      pergunta: t.pergunta, esperada: t.esperada, erros: t.erros, respostas_erradas: t.respostas_erradas.slice(),
+      dicas_pedidas: t.dicas_pedidas, dica_auto: t.dica_auto, acertou: t.acertou } }));
+    try {
+      const { error } = await db.from('tentativas').upsert(lote.map(x => x.linha), { onConflict: 'id' });
+      if (error) throw error;
+      lote.forEach(x => { if (x.t._v === x.v && tentativas.get(x.t.id) === x.t) tentativas.delete(x.t.id); });
+    } catch (err) { console.error('Não salvou o registro de erros (vai tentar de novo):', err); }
+    finally { enviando = false; }
+  }
+
   async function autosave() {
+    await enviarTentativas();
     if (!aluno || salvando) return;
     const snap = snapshot();
     if (!snap) return;

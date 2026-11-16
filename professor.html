@@ -42,11 +42,31 @@ details.card summary{cursor:pointer;font-weight:700;font-size:1.15rem}
 .turma[aria-pressed="true"]{background:var(--yellow)}
 .turma .cod{font-weight:500;font-size:.9rem;color:var(--muted)}
 .tabela{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:640px}
+table{border-collapse:collapse;width:100%;min-width:720px}
 th,td{padding:8px 10px;text-align:center;border-bottom:2px solid #e9e4f5}
 th{font-size:.9rem;color:var(--muted)}
 th:first-child,td:first-child{text-align:left;font-weight:600}
+.link-aluno{all:unset;display:inline-block;cursor:pointer;font-weight:600;color:var(--blue);text-decoration:underline;padding:6px 2px;border-radius:6px}
+.link-aluno:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.link-aluno:active{transform:none;box-shadow:none}
+.figs{font-size:1.45rem;white-space:nowrap}
+dialog#detalhe{border:4px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);background:var(--card);color:var(--ink);padding:0;width:min(920px,94vw);max-height:90vh;overflow:auto;font:inherit}
+dialog#detalhe::backdrop{background:rgba(43,35,80,.6)}
+.det-corpo{padding:20px 24px;display:grid;gap:14px}
+.det-topo{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.det-senha{display:flex;align-items:center;gap:10px;font-weight:600;flex-wrap:wrap}
+.det-senha .figs{font-size:2rem;background:#fff3b0;border:3px dashed var(--ink);border-radius:14px;padding:2px 14px}
+.resumo{display:flex;gap:10px;flex-wrap:wrap}
+.chip{display:grid;text-align:center;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:6px 14px;min-width:120px}
+.chip b{font-size:1.5rem}
+.chip span{font-size:.85rem;color:var(--muted)}
+.det-filtro{display:flex;align-items:center;gap:10px;font-weight:600}
+.det-filtro input{width:22px;height:22px;padding:0}
+table.det{min-width:760px}
+table.det th,table.det td{text-align:left;font-weight:400;font-size:.95rem;vertical-align:top}
+table.det th{font-weight:600}
 @media (max-width:600px){
+  .det-corpo{padding:16px}
   body{padding:14px 10px 36px;font-size:17px}
   h1{font-size:1.4rem}
   .card{padding:16px}
@@ -126,11 +146,11 @@ th:first-child,td:first-child{text-align:left;font-weight:600}
       <p class="aviso" id="vazio" hidden>Nenhum aluno entrou nesta turma ainda. Passe o código aos alunos.</p>
       <div class="tabela" id="tabela" hidden>
         <table>
-          <thead><tr><th>Aluno</th><th>Moedas</th><th>Matemática</th><th>Português</th><th>Ciências</th><th>História</th><th>Geografia</th></tr></thead>
+          <thead><tr><th>Aluno</th><th>Figuras (senha)</th><th>Moedas</th><th>Matemática</th><th>Português</th><th>Ciências</th><th>História</th><th>Geografia</th></tr></thead>
           <tbody id="corpo"></tbody>
         </table>
       </div>
-      <p class="aviso">As colunas dos mapas mostram quantas das 10 fases (a última é o chefão) cada aluno já concluiu. Esses dados (primeiro nome e progresso) são para acompanhamento pedagógico: não compartilhe fora da escola.</p>
+      <p class="aviso">As colunas dos mapas mostram quantas das 10 fases (a última é o chefão) cada aluno já concluiu. Clique no nome do aluno para ver os erros e as dicas. Esses dados (primeiro nome, figuras de acesso, progresso, erros e dicas) são para acompanhamento pedagógico: não compartilhe fora da escola.</p>
     </section>
     <details class="card" id="cartao-senha">
       <summary>Trocar minha senha</summary>
@@ -146,6 +166,28 @@ th:first-child,td:first-child{text-align:left;font-weight:600}
   </div>
 </main>
 
+<dialog id="detalhe" aria-labelledby="det-titulo">
+  <div class="det-corpo">
+    <div class="det-topo">
+      <h2 id="det-titulo"></h2>
+      <button type="button" id="det-fechar">Fechar</button>
+    </div>
+    <div class="det-senha"><span>Figuras para entrar:</span><span id="det-figuras"></span></div>
+    <div class="resumo" id="det-resumo"></div>
+    <label class="det-filtro"><input type="checkbox" id="det-so-problemas" checked> Mostrar só perguntas com erro ou dica</label>
+    <p class="aviso" id="det-carregando">Carregando…</p>
+    <p class="aviso" id="det-vazio" hidden></p>
+    <div class="tabela" id="det-tabela" hidden>
+      <table class="det">
+        <thead><tr><th>Quando</th><th>Onde</th><th>Pergunta</th><th>Resposta certa</th><th>Erros</th><th>Dica</th><th>Resultado</th></tr></thead>
+        <tbody id="det-corpo"></tbody>
+      </table>
+    </div>
+    <p class="erro" id="det-erro" role="alert"></p>
+    <p class="aviso">Dados para acompanhamento pedagógico: não compartilhe fora da escola. Os registros mostram as últimas 500 perguntas do aluno.</p>
+  </div>
+</dialog>
+
 <script>
 const SUPABASE_URL = 'https://wafiswmrrpylcoynugen.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhZmlzd21ycnB5bGNveW51Z2VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1MTMzMDQsImV4cCI6MjExMDA4OTMwNH0.toBeYIHc6Jusc63Wd-hDCYkX8YC0kviiRmug2eu5ll8';
@@ -153,6 +195,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage } });
 
 const MAPAS = ['matematica', 'portugues', 'ciencias', 'historia', 'geografia'];
+const NOME_MAPA = { matematica: 'Matemática', portugues: 'Português', ciencias: 'Ciências', historia: 'História', geografia: 'Geografia' };
+// Mesma ordem das figuras do jogo: o dígito guardado no banco (1 a 9) aponta para uma delas.
+const FIGS = ['🐶', '🌟', '🍎', '🚀', '🌈', '🎈', '🍀', '🐢', '⚽'];
+const NOMES_FIGS = ['cachorro', 'estrela', 'maçã', 'foguete', 'arco-íris', 'balão', 'trevo', 'tartaruga', 'bola'];
 const $ = s => document.querySelector(s);
 let turmas = [], turmaAtual = null;
 
@@ -224,7 +270,7 @@ async function escolher(id) {
   $('#cartao-alunos').hidden = false;
   $('#titulo-alunos').textContent = 'Alunos · ' + (t.descricao || 'Turma sem nome') + ' (código ' + t.codigo + ')';
   const { data, error } = await db.from('alunos')
-    .select('id,nome,moedas,progresso(mapa,concluida,estrelas)')
+    .select('id,nome,moedas,progresso(mapa,concluida,estrelas),aluno_figuras(figuras)')
     .eq('turma_id', id).order('nome');
   const corpo = $('#corpo'); corpo.replaceChildren();
   if (error) return msg('#erro-painel', 'Não deu para carregar os alunos.');
@@ -233,11 +279,90 @@ async function escolher(id) {
   data.forEach(a => {
     const p = a.progresso || [];
     corpo.append(h('tr', {},
-      h('td', { textContent: a.nome }),
+      h('td', {}, h('button', { type: 'button', className: 'link-aluno', textContent: a.nome, title: 'Ver erros e dicas de ' + a.nome, onclick: () => abrirDetalhe(a) })),
+      h('td', {}, figurasEl(a)),
       h('td', { textContent: a.moedas }),
       MAPAS.map(m => { const n = p.filter(x => x.mapa === m && x.concluida).length; return h('td', { textContent: n ? n + '/10' : '–' }); })));
   });
 }
+
+// ---------- figuras (senha) do aluno ----------
+function figurasDe(a) {
+  const r = Array.isArray(a.aluno_figuras) ? a.aluno_figuras[0] : a.aluno_figuras;
+  const f = r && r.figuras;
+  return f && /^[1-9]{3}$/.test(f) ? f.split('').map(d => +d - 1) : null;
+}
+function figurasEl(a) {
+  const idx = figurasDe(a);
+  if (!idx) return h('span', { className: 'aviso', textContent: '–' });
+  const nomes = idx.map(i => NOMES_FIGS[i]).join(', ');
+  const e = h('span', { className: 'figs', textContent: idx.map(i => FIGS[i]).join(' '), title: nomes });
+  e.setAttribute('role', 'img');
+  e.setAttribute('aria-label', 'Figuras: ' + nomes);
+  return e;
+}
+
+// ---------- janela com erros e dicas do aluno ----------
+const dlg = $('#detalhe');
+let detLinhas = [], detToken = 0;
+
+const chip = (valor, rotulo) => h('div', { className: 'chip' }, h('b', { textContent: String(valor) }), h('span', { textContent: rotulo }));
+const temAjuda = t => t.dicas_pedidas > 0 || t.dica_auto;
+
+async function abrirDetalhe(a) {
+  const token = ++detToken;
+  $('#det-titulo').textContent = a.nome;
+  $('#det-figuras').replaceChildren(figurasEl(a));
+  $('#det-resumo').replaceChildren();
+  $('#det-corpo').replaceChildren();
+  msg('#det-erro', '');
+  $('#det-carregando').hidden = false;
+  $('#det-tabela').hidden = true;
+  $('#det-vazio').hidden = true;
+  detLinhas = [];
+  if (!dlg.open) dlg.showModal();
+  const { data, error } = await db.from('tentativas')
+    .select('id,mapa,fase,rodada,tipo,pergunta,esperada,erros,respostas_erradas,dicas_pedidas,dica_auto,acertou,criado_em')
+    .eq('aluno_id', a.id).order('criado_em', { ascending: false }).limit(500);
+  if (token !== detToken) return;
+  $('#det-carregando').hidden = true;
+  if (error) return msg('#det-erro', 'Não deu para carregar o detalhe deste aluno.');
+  detLinhas = data || [];
+  desenharDetalhe();
+}
+
+function desenharDetalhe() {
+  const todas = detLinhas;
+  $('#det-resumo').replaceChildren(
+    chip(todas.filter(t => t.acertou).length, 'perguntas respondidas'),
+    chip(todas.filter(t => t.acertou && !t.erros && !temAjuda(t)).length, 'acertos de primeira'),
+    chip(todas.reduce((n, t) => n + t.erros, 0), 'erros no total'),
+    chip(todas.filter(temAjuda).length, 'perguntas com dica'));
+  const linhas = $('#det-so-problemas').checked ? todas.filter(t => t.erros > 0 || temAjuda(t)) : todas;
+  const corpo = $('#det-corpo'); corpo.replaceChildren();
+  $('#det-vazio').hidden = linhas.length > 0;
+  $('#det-vazio').textContent = todas.length
+    ? 'Nenhuma pergunta com erro ou dica.'
+    : 'Ainda sem registros. Os erros e as dicas passam a ser guardados a partir das próximas jogadas.';
+  $('#det-tabela').hidden = linhas.length === 0;
+  linhas.forEach(t => {
+    const dicas = [];
+    if (t.dicas_pedidas) dicas.push('Pediu ao personagem' + (t.dicas_pedidas > 1 ? ' (' + t.dicas_pedidas + '×)' : ''));
+    if (t.dica_auto) dicas.push('Viu a dica do jogo');
+    corpo.append(h('tr', {},
+      h('td', { textContent: new Date(t.criado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) }),
+      h('td', { textContent: (NOME_MAPA[t.mapa] || t.mapa) + ' · Fase ' + t.fase + (t.rodada ? ' (chefão, rodada ' + t.rodada + ')' : '') }),
+      h('td', { textContent: t.pergunta }),
+      h('td', { textContent: t.esperada || '–' }),
+      h('td', { textContent: t.erros ? t.erros + (t.respostas_erradas && t.respostas_erradas.length ? ': ' + t.respostas_erradas.join(', ') : '') : '–' }),
+      h('td', { textContent: dicas.length ? dicas.join(' · ') : '–' }),
+      h('td', { textContent: t.acertou ? 'Acertou' : 'Não terminou' })));
+  });
+}
+
+$('#det-so-problemas').onchange = desenharDetalhe;
+$('#det-fechar').onclick = () => dlg.close();
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
 $('#form-turma').addEventListener('submit', async e => {
   e.preventDefault(); msg('#erro-painel', '');
@@ -257,7 +382,7 @@ $('#copiar').onclick = async () => {
   catch { $('#copiar').textContent = 'Selecione e copie o código'; }
 };
 $('#atualizar').onclick = () => carregarTurmas();
-$('#sair').onclick = async () => { await db.auth.signOut(); turmas = []; turmaAtual = null; mostrar(false); };
+$('#sair').onclick = async () => { if (dlg.open) dlg.close(); await db.auth.signOut(); turmas = []; turmaAtual = null; mostrar(false); };
 
 // Número que recebe os pedidos de acesso (55 = Brasil, 43 = DDD).
 const WHATSAPP = '5543984769365';
