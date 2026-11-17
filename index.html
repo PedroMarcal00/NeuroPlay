@@ -312,6 +312,19 @@
   body.hc .tap-hint { font-size:18px; color:#fff; }
   .char-card .char-emoji svg { width:72px; height:72px; display:block; margin:0 auto; }
   .custom-box { text-align:left; margin-bottom:18px; }
+  .variant-box { text-align:left; }
+  .variant-box .field-label { margin-top:0; }
+  .variant-row { display:flex; gap:8px; }
+  .variant-btn { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 2px 5px; border-radius:14px; border:3px solid #EADFF5; background:#FFFDF8; color:#3A2B4A; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13px; line-height:1.1; cursor:pointer; }
+  .variant-btn svg { width:52px; height:54px; display:block; }
+  .variant-btn:hover { border-color:#C7B4E8; }
+  .variant-btn[aria-pressed="true"] { border-color:#3D6FB6; background:#E3ECF8; }
+  .shop-left .variant-btn svg { width:40px; height:42px; }
+  .shop-left .variant-btn { font-size:11px; }
+  body.theme-night:not(.hc) .variant-btn { background:#373059; border-color:#4B4378; color:#F1ECFA; }
+  body.theme-night:not(.hc) .variant-btn[aria-pressed="true"] { background:#3B4E7A; border-color:#9DB9F0; }
+  body.hc .variant-btn { border:3px solid #000; background:#fff; color:#000; font-size:15px; }
+  body.hc .variant-btn[aria-pressed="true"] { background:#D9FFE4; border-color:#006B2D; }
   .name-input { width:100%; padding:12px 14px; border:3px solid #EADFF5; border-radius:12px; font-size:16px; font-family:'Inter',sans-serif; color:#3A2B4A; background:#fff; }
   .name-input:focus-visible { outline:3px solid #1F5FBF; outline-offset:2px; }
   .field-label { display:block; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; color:#6B4C86; margin:12px 0 6px; text-align:left; }
@@ -556,8 +569,8 @@
   .char-card { padding:10px 6px 8px; font-size:15px; }
   .char-card .char-emoji svg { width:72px; height:75px; }
   .start-right { display:flex; flex-direction:column; justify-content:center; gap:12px; }
-  .start-preview { height:200px; display:flex; align-items:center; justify-content:center; background:#F1E8FF; border-radius:22px; }
-  .start-preview svg { height:180px; width:auto; }
+  .start-preview { height:168px; display:flex; align-items:center; justify-content:center; background:#F1E8FF; border-radius:22px; }
+  .start-preview svg { height:152px; width:auto; }
   .start-empty { color:#7A6C8C; font-weight:700; font-size:18px; margin:0; }
   .custom-box { margin:0; }
   .name-input { font-size:18px; }
@@ -850,6 +863,10 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
       </div>
       <div class="start-right">
         <div class="start-preview" id="startPreview"><p class="start-empty">👈 Escolha um personagem</p></div>
+        <div class="variant-box" id="variantBox" style="display:none;">
+          <span class="field-label">Escolha o estilo</span>
+          <div class="variant-row" id="variantRow"></div>
+        </div>
         <div class="custom-box" id="customBox" style="display:none;">
           <label class="field-label" for="nameInput">Nome do personagem</label>
           <input class="name-input" id="nameInput" maxlength="12" placeholder="Ex.: Pipoca" autocomplete="off">
@@ -1067,18 +1084,18 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   ];
 
   const characters = [
-    { id: 'raposa',    name: 'Raposa',    color: '#F28C38' },
-    { id: 'panda',     name: 'Panda',     color: '#FFFFFF' },
-    { id: 'gato',      name: 'Gato',      color: '#9AA5B1' },
-    { id: 'urso',      name: 'Urso',      color: '#A9744F' },
-    { id: 'coelho',    name: 'Coelho',    color: '#FFFFFF' },
-    { id: 'pinguim',   name: 'Pinguim',   color: '#3D4A63' },
-    { id: 'tartaruga', name: 'Tartaruga', color: '#7DD3A0' },
-    { id: 'patinho',   name: 'Patinho',   color: '#F4D35E' },
-    { id: 'leao',      name: 'Leão',      color: '#F4D35E' },
-    { id: 'vaca',      name: 'Vaca',      color: '#FFFFFF' },
-    { id: 'sapo',      name: 'Sapo',      color: '#7DD3A0' },
-    { id: 'esquilo',   name: 'Esquilo',   color: '#C9763A' }
+    { id: 'raposa',    name: 'Raposa',    variants: ['Fogo', 'Gelo', 'Mágica'] },
+    { id: 'panda',     name: 'Panda',     variants: ['Clássico', 'Turquesa', 'Laço'] },
+    { id: 'gato',      name: 'Gato',      variants: ['Laranja', 'Cinza', 'Malhado'] },
+    { id: 'urso',      name: 'Urso',      variants: ['Marrom', 'Creme', 'Galáxia'] },
+    { id: 'coelho',    name: 'Coelho',    variants: ['Neve', 'Caramelo', 'Lilás'] },
+    { id: 'pinguim',   name: 'Pinguim',   variants: ['Marinho', 'Azulzinho', 'Mago'] },
+    { id: 'tartaruga', name: 'Tartaruga', variants: ['Verdinha', 'Estrelada', 'Roxinha'] },
+    { id: 'patinho',   name: 'Patinho',   variants: ['Amarelo', 'Boné', 'Estudioso'] },
+    { id: 'leao',      name: 'Leão',      variants: ['Dourado', 'Gelo', 'Sombra'] },
+    { id: 'vaca',      name: 'Vaca',      variants: ['Malhada', 'Rosinha', 'Roxinha'] },
+    { id: 'sapo',      name: 'Sapo',      variants: ['Rei', 'Azulzinho', 'Folhinha'] },
+    { id: 'esquilo',   name: 'Esquilo',   variants: ['Ruivo', 'Rosinha', 'Cinza'] }
   ];
 
   // Alunos que já tinham jogado com os personagens antigos continuam de onde pararam, com o animal mais parecido.
@@ -1180,31 +1197,82 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   }
 
   /* ---- personagens em pixel art ----
-     Cada animal é um PNG (pasta animais/). As medidas abaixo estão num quadro de 0 a 100 (o PNG ocupa o quadro todo)
-     e servem para encaixar os acessórios da loja: hx/hy = centro da cabeça, hw = largura da cabeça, ex = x dos dois
-     olhos, ey = altura dos olhos, ny = altura do pescoço, hand = onde fica o item de mão, bust = zoom do "busto". */
+     Cada animal tem 3 variações (PNG em animais/<id>-1.png, -2, -3). As medidas abaixo estão num quadro de 0 a 100
+     (o PNG ocupa o quadro todo) e servem para encaixar os acessórios da loja: hx/hy = centro da cabeça, hw = largura
+     da cabeça, ex = x dos dois olhos, ey = altura dos olhos, ny = altura do pescoço, hand = onde fica o item de mão,
+     bust = zoom do "busto". */
   const SPRITES = {
-    raposa:    { hx:58, hy:47, hw:50, ex:[55.7,70.7], ey:51, ny:67, hand:[84,80], bust:42 },
-    panda:     { hx:52, hy:48, hw:56, ex:[40.6,65.2], ey:48, ny:68, hand:[84,80], bust:46 },
-    gato:      { hx:41, hy:47, hw:50, ex:[32.4,52.3], ey:53, ny:68, hand:[66,82], bust:42 },
-    urso:      { hx:51, hy:46, hw:54, ex:[42.8,63.5], ey:46, ny:66, hand:[84,80], bust:45 },
-    coelho:    { hx:57, hy:57, hw:44, ex:[50.6,68.2], ey:59, ny:76, hand:[82,82], bust:40 },
-    pinguim:   { hx:53, hy:53, hw:46, ex:[43.4,63.3], ey:56, ny:72, hand:[84,80], bust:40 },
-    tartaruga: { hx:32, hy:62, hw:40, ex:[21.7,42.4], ey:62, ny:76, hand:[56,84], bust:36 },
-    patinho:   { hx:57, hy:55, hw:48, ex:[48.8,67.4], ey:53, ny:73, hand:[84,82], bust:40 },
-    leao:      { hx:43, hy:50, hw:52, ex:[34.0,52.5], ey:48, ny:72, hand:[84,84], bust:48 },
-    vaca:      { hx:40, hy:45, hw:52, ex:[28.7,47.9], ey:43, ny:62, hand:[70,84], bust:42 },
-    sapo:      { hx:48, hy:50, hw:46, ex:[35.5,60.4], ey:47, ny:64, hand:[82,86], bust:40 },
-    esquilo:   { hx:30, hy:52, hw:44, ex:[21.1,38.5], ey:51, ny:67, hand:[62,86], bust:38 }
+    raposa: [
+      { hx:46.8, hy:55.0, hw:62, ex:[33.5, 60.0], ey:58.0, ny:80.3, hand:[80.0, 84], bust:49.6 },
+      { hx:44.9, hy:54.7, hw:62, ex:[32.2, 57.6], ey:57.7, ny:80.0, hand:[79.6, 84], bust:49.6 },
+      { hx:46.4, hy:54.3, hw:62, ex:[33.6, 59.2], ey:57.3, ny:79.6, hand:[79.0, 84], bust:49.6 }
+    ],
+    gato: [
+      { hx:45.9, hy:52.6, hw:63, ex:[32.2, 59.6], ey:55.6, ny:78.3, hand:[80.0, 84], bust:50.4 },
+      { hx:45.9, hy:52.6, hw:63, ex:[31.8, 60.0], ey:55.6, ny:78.3, hand:[78.2, 84], bust:50.4 },
+      { hx:45.8, hy:53.3, hw:63, ex:[32.4, 59.2], ey:56.3, ny:79.0, hand:[78.4, 84], bust:50.4 }
+    ],
+    coelho: [
+      { hx:64.0, hy:52.4, hw:60, ex:[51.6, 76.4], ey:55.4, ny:77.0, hand:[75.5, 84], bust:48.0 },
+      { hx:62.8, hy:52.5, hw:60, ex:[50.4, 75.2], ey:55.5, ny:77.1, hand:[74.5, 84], bust:48.0 },
+      { hx:62.7, hy:52.5, hw:60, ex:[50.8, 74.6], ey:55.5, ny:77.1, hand:[73.7, 84], bust:48.0 }
+    ],
+    tartaruga: [
+      { hx:30.6, hy:64.0, hw:40, ex:[23.0, 38.3], ey:67.0, ny:81.4, hand:[78.2, 84], bust:32.0 },
+      { hx:31.1, hy:64.2, hw:40, ex:[23.4, 38.7], ey:67.2, ny:81.6, hand:[77.8, 84], bust:32.0 },
+      { hx:28.6, hy:65.8, hw:40, ex:[21.0, 36.3], ey:68.8, ny:83.2, hand:[80.0, 84], bust:32.0 }
+    ],
+    leao: [
+      { hx:38.1, hy:65.5, hw:56, ex:[28.3, 48.0], ey:68.5, ny:93.1, hand:[80.0, 84], bust:51.5 },
+      { hx:36.1, hy:64.6, hw:56, ex:[26.4, 45.9], ey:67.6, ny:92.2, hand:[80.0, 84], bust:51.5 },
+      { hx:37.9, hy:67.5, hw:56, ex:[29.0, 46.7], ey:70.5, ny:95.1, hand:[78.6, 84], bust:51.5 }
+    ],
+    sapo: [
+      { hx:46.8, hy:54.3, hw:60, ex:[30.5, 63.1], ey:57.3, ny:78.9, hand:[72.2, 84], bust:48.0 },
+      { hx:46.5, hy:53.9, hw:60, ex:[30.7, 62.3], ey:56.9, ny:78.5, hand:[71.4, 84], bust:48.0 },
+      { hx:44.4, hy:54.1, hw:60, ex:[28.7, 60.0], ey:57.1, ny:78.7, hand:[73.0, 84], bust:48.0 }
+    ],
+    panda: [
+      { hx:56.0, hy:46.5, hw:66, ex:[40.0, 72.0], ey:49.5, ny:73.3, hand:[78.4, 84], bust:52.8 },
+      { hx:55.0, hy:46.5, hw:66, ex:[39.0, 71.0], ey:49.5, ny:73.3, hand:[78.4, 84], bust:52.8 },
+      { hx:54.5, hy:46.0, hw:66, ex:[38.0, 71.0], ey:49.0, ny:72.8, hand:[77.6, 84], bust:52.8 }
+    ],
+    urso: [
+      { hx:54.6, hy:45.7, hw:64, ex:[39.8, 69.5], ey:48.7, ny:71.7, hand:[77.8, 84], bust:51.2 },
+      { hx:54.6, hy:45.5, hw:64, ex:[40.2, 69.1], ey:48.5, ny:71.5, hand:[78.2, 84], bust:51.2 },
+      { hx:56.8, hy:47.4, hw:64, ex:[42.6, 70.9], ey:50.4, ny:73.4, hand:[80.0, 84], bust:51.2 }
+    ],
+    pinguim: [
+      { hx:57.8, hy:46.4, hw:62, ex:[43.4, 72.3], ey:49.4, ny:71.7, hand:[80.0, 84], bust:49.6 },
+      { hx:55.4, hy:47.8, hw:62, ex:[42.4, 68.4], ey:50.8, ny:73.1, hand:[76.3, 84], bust:49.6 },
+      { hx:57.0, hy:51.1, hw:62, ex:[44.7, 69.3], ey:54.1, ny:76.4, hand:[75.3, 84], bust:49.6 }
+    ],
+    patinho: [
+      { hx:39.5, hy:67.5, hw:52, ex:[27.0, 52.0], ey:70.5, ny:91.3, hand:[73.0, 84], bust:41.6 },
+      { hx:39.4, hy:68.2, hw:52, ex:[26.8, 52.0], ey:71.2, ny:92.0, hand:[73.5, 84], bust:41.6 },
+      { hx:39.5, hy:65.6, hw:52, ex:[27.5, 51.4], ey:68.6, ny:89.4, hand:[74.3, 84], bust:41.6 }
+    ],
+    vaca: [
+      { hx:32.4, hy:51.0, hw:46, ex:[22.5, 42.2], ey:54.0, ny:70.6, hand:[79.0, 84], bust:36.8 },
+      { hx:33.3, hy:56.0, hw:46, ex:[23.6, 43.0], ey:59.0, ny:75.6, hand:[77.5, 84], bust:36.8 },
+      { hx:32.4, hy:51.0, hw:46, ex:[22.5, 42.2], ey:54.0, ny:70.6, hand:[78.8, 84], bust:36.8 }
+    ],
+    esquilo: [
+      { hx:30.9, hy:61.1, hw:46, ex:[21.7, 40.0], ey:64.1, ny:80.7, hand:[76.1, 84], bust:36.8 },
+      { hx:31.4, hy:61.3, hw:46, ex:[22.5, 40.4], ey:64.3, ny:80.9, hand:[75.1, 84], bust:36.8 },
+      { hx:30.1, hy:60.7, hw:46, ex:[21.1, 39.1], ey:63.7, ny:80.3, hand:[76.7, 84], bust:36.8 }
+    ]
   };
 
   const AV_INK = '#3A2B4A';
   const AV_SW = 'stroke="' + AV_INK + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"';
 
-  function avatarSVG(charId, color, eq, expr, view) {
+  function avatarSVG(charId, variant, eq, expr, view) {
     eq = eq || {};
-    const sp = SPRITES[charId] || SPRITES.raposa;
     const id = SPRITES[charId] ? charId : 'raposa';
+    const lista = SPRITES[id];
+    const vi = Math.min(Math.max(parseInt(variant, 10) || 0, 0), lista.length - 1);
+    const sp = lista[vi];
     const ink = AV_INK, sw = AV_SW;
     const ACC = {
       cachecol: `<path d="M30 71 Q50 83 70 71 L71 79 Q50 91 29 79 Z" fill="#E85C93" ${sw}/><path d="M58 83 L67 82 L69 96 L60 97 Z" fill="#C7457A" ${sw}/>`,
@@ -1224,9 +1292,9 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
       bussola: `<g transform="rotate(8 80 94)"><rect x="78" y="78" width="4" height="5" rx="1" fill="#C9A441"/><circle cx="80" cy="93" r="12" fill="#C9A441" ${sw}/><circle cx="80" cy="93" r="9" fill="#FFF9F0"/><polygon points="80,85 83,93 80,101 77,93" fill="#E4572E"/><polygon points="80,101 83,93 77,93" fill="#3A2B4A" opacity=".85"/><circle cx="80" cy="93" r="1.6" fill="${ink}"/></g>`
     };
 
-    const s = sp.hw / 52;                                   // escala da cabeça (os acessórios foram desenhados para uma cabeça de 52)
+    const s = Math.min(sp.hw / 52, 1.2);                                   // escala da cabeça (os acessórios foram desenhados para uma cabeça de 52)
     const sep = sp.ex[1] - sp.ex[0];
-    const sf = Math.min(Math.max(sep / 18, 0.9), 1.5);      // escala dos óculos
+    const sf = Math.min(Math.max(sep / 18, 0.9), 1.45);      // escala dos óculos
     const exc = (sp.ex[0] + sp.ex[1]) / 2;
     const place = (x, y, k, ox, oy, svg) => svg ? `<g transform="translate(${x} ${y}) scale(${k}) translate(${-ox} ${-oy})">${svg}</g>` : '';
     const brimY = sp.ey - 7;                                // a aba dos chapéus fica logo acima dos olhos
@@ -1241,11 +1309,11 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
 
     return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Personagem">` +
       `<ellipse cx="50" cy="118" rx="27" ry="3" fill="#000" opacity=".13"/>` +
-      `<g transform="translate(0 18)"><image href="animais/${id}.png" x="0" y="0" width="100" height="100"/>` +
+      `<g transform="translate(0 18)"><image href="animais/${id}-${vi + 1}.png" x="0" y="0" width="100" height="100"/>` +
       worn + held + `</g></svg>`;
   }
 
-  const state = { mapIndex: 0, current: 0, coins: 0, character: null, color: null, name: '', owned: [], restSeen: {}, boss: null, tutorialSeen: false,
+  const state = { mapIndex: 0, current: 0, coins: 0, character: null, variant: 0, name: '', owned: [], restSeen: {}, boss: null, tutorialSeen: false,
                   equipped: { head: null, face: null, neck: null, hand: null } };
   let lastMascotMap = -1;
   let wrongCount = 0;
@@ -1763,7 +1831,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
       </div>`;
     document.getElementById('meName').textContent = state.name;
     const av = document.getElementById('compAvatar');
-    av.innerHTML = avatarSVG(state.character.id, state.color, state.equipped, 'neutral', 'full');
+    av.innerHTML = avatarSVG(state.character.id, state.variant, state.equipped, 'neutral', 'full');
     av.setAttribute('aria-label', 'Pedir ajuda para ' + state.name);
     document.getElementById('bubble').textContent = 'Toque em mim se precisar de ajuda.';
     updateBossHud();
@@ -1955,7 +2023,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
       renderMascotAvatar();
       rewardHtml = `<p class="reward-line">🎁 Item novo: ${rw.icon} ${rw.name}! Já está no seu personagem.</p>`;
     }
-    const doneAvatar = `<div class="done-avatar">${avatarSVG(state.character.id, state.color, state.equipped, 'cheer')}</div>`;
+    const doneAvatar = `<div class="done-avatar">${avatarSVG(state.character.id, state.variant, state.equipped, 'cheer')}</div>`;
     const isLastMap = state.mapIndex === maps.length - 1;
     if (!isLastMap) {
       completeEl.innerHTML = `
@@ -1993,7 +2061,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
 
   function renderMascotAvatar() {
     const el = document.getElementById('mascotEl');
-    if (el && state.character) el.innerHTML = avatarSVG(state.character.id, state.color, state.equipped, 'neutral');
+    if (el && state.character) el.innerHTML = avatarSVG(state.character.id, state.variant, state.equipped, 'neutral');
   }
 
   function moveMascot() {
@@ -2019,7 +2087,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   function setCompanion(expr, text) {
     const av = document.getElementById('compAvatar');
     const bubble = document.getElementById('bubble');
-    if (av) av.innerHTML = avatarSVG(state.character.id, state.color, state.equipped, expr, av.dataset.view || 'bust');
+    if (av) av.innerHTML = avatarSVG(state.character.id, state.variant, state.equipped, expr, av.dataset.view || 'bust');
     if (bubble) bubble.textContent = text;
   }
 
@@ -2062,7 +2130,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
     btn.type = 'button';
     btn.className = 'companion-avatar';
     btn.id = 'compAvatar';
-    btn.innerHTML = avatarSVG(state.character.id, state.color, state.equipped, 'neutral', 'bust');
+    btn.innerHTML = avatarSVG(state.character.id, state.variant, state.equipped, 'neutral', 'bust');
     btn.setAttribute('aria-label', 'Pedir ajuda para ' + state.name);
     const bubble = document.createElement('p');
     bubble.className = 'bubble';
@@ -2099,6 +2167,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
             <div class="shop-preview" id="shopPreview"></div>
             <div><p class="shop-name" id="shopName"></p><p class="shop-coins">🪙 ${state.coins}</p></div>
           </div>
+          <span class="field-label">Estilo</span>
+          <div class="variant-row" id="shopVariants"></div>
           <p class="feedback" id="shopMsg"></p>
         </div>
         <div class="shop-right">
@@ -2107,7 +2177,12 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
         </div>
       </div>`;
     document.getElementById('shopName').textContent = state.name;
-    document.getElementById('shopPreview').innerHTML = avatarSVG(state.character.id, state.color, state.equipped, 'happy');
+    document.getElementById('shopPreview').innerHTML = avatarSVG(state.character.id, state.variant, state.equipped, 'happy');
+    renderVariantButtons(document.getElementById('shopVariants'), state.character, state.variant, i => {
+      state.variant = i;
+      renderMascotAvatar();
+      renderShop();
+    });
     const grid = document.getElementById('shopGrid');
     ITEMS.forEach(it => {
       const owned = state.owned.includes(it.id);
@@ -2214,7 +2289,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   }
 
   function tutAvatar(step, expr) {
-    return avatarSVG(state.character.id, state.color, step.eq || state.equipped, expr || step.expr, 'full');
+    return avatarSVG(state.character.id, state.variant, step.eq || state.equipped, expr || step.expr, 'full');
   }
 
   function renderTutorial() {
@@ -2300,7 +2375,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
     cardEl.style.display = 'none';
     completeEl.style.display = 'block';
     completeEl.innerHTML = `
-      <div class="done-avatar">${avatarSVG(state.character.id, state.color, state.equipped, 'happy')}</div>
+      <div class="done-avatar">${avatarSVG(state.character.id, state.variant, state.equipped, 'happy')}</div>
       <h2>Ponto de descanso</h2>
       <p>Você chegou na metade do mapa. Respire fundo: inspire pelo nariz e solte devagar pela boca.</p>
       <div class="breath" aria-hidden="true"><span class="breath-dot"></span></div>
@@ -2340,6 +2415,21 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
     else { closeModal(); }
   }
 
+  // Botões de variação do personagem (usados na tela inicial e na loja)
+  function renderVariantButtons(container, ch, selected, onPick) {
+    container.innerHTML = '';
+    ch.variants.forEach((nome, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'variant-btn';
+      b.setAttribute('aria-pressed', i === selected ? 'true' : 'false');
+      b.setAttribute('aria-label', 'Estilo ' + nome);
+      b.innerHTML = avatarSVG(ch.id, i, {}, 'neutral', 'card') + '<span>' + nome + '</span>';
+      b.onclick = () => onPick(i);
+      container.appendChild(b);
+    });
+  }
+
   function initCharacterSelect() {
     const charGrid = document.getElementById('charGrid');
     const startBtn = document.getElementById('startBtn');
@@ -2348,12 +2438,26 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
 
     charGrid.innerHTML = characters.map(ch => `
       <button class="char-card" data-id="${ch.id}" type="button">
-        <span class="char-emoji">${avatarSVG(ch.id, ch.color, {}, 'neutral', 'card')}</span>${ch.name}
+        <span class="char-emoji">${avatarSVG(ch.id, 0, {}, 'neutral', 'card')}</span>${ch.name}
       </button>
     `).join('');
 
     function paintPreview() {
-      document.getElementById('startPreview').innerHTML = avatarSVG(state.character.id, state.color, {}, 'happy');
+      document.getElementById('startPreview').innerHTML = avatarSVG(state.character.id, state.variant, {}, 'happy');
+    }
+
+    function paintCardIcon() {
+      const sel = charGrid.querySelector('[data-id="' + state.character.id + '"] .char-emoji');
+      if (sel) sel.innerHTML = avatarSVG(state.character.id, state.variant, {}, 'neutral', 'card');
+    }
+
+    function paintVariants() {
+      renderVariantButtons(document.getElementById('variantRow'), state.character, state.variant, i => {
+        state.variant = i;
+        paintCardIcon();
+        paintPreview();
+        paintVariants();
+      });
     }
 
     charGrid.querySelectorAll('.char-card').forEach(card => {
@@ -2361,13 +2465,15 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
         charGrid.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         characters.forEach(ch => {
-          charGrid.querySelector('[data-id="' + ch.id + '"] .char-emoji').innerHTML = avatarSVG(ch.id, ch.color, {}, 'neutral', 'card');
+          charGrid.querySelector('[data-id="' + ch.id + '"] .char-emoji').innerHTML = avatarSVG(ch.id, 0, {}, 'neutral', 'card');
         });
         const chosen = characters.find(c => c.id === card.dataset.id);
         state.character = chosen;
-        state.color = chosen.color;
-        card.querySelector('.char-emoji').innerHTML = avatarSVG(chosen.id, state.color, {}, 'happy', 'card');
+        state.variant = 0;
+        paintCardIcon();
         paintPreview();
+        paintVariants();
+        document.getElementById('variantBox').style.display = 'block';
         customBox.style.display = 'block';
         startBtn.classList.add('enabled');
       };
@@ -2556,7 +2662,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
   function snapshot() {
     if (!state.character) return null;
     return {
-      character: state.character.id, color: state.color, name: state.name,
+      character: state.character.id, variant: state.variant, name: state.name,
       coins: Math.max(0, Math.floor(state.coins || 0)),
       owned: state.owned.slice(), equipped: Object.assign({}, state.equipped),
       restSeen: Object.assign({}, state.restSeen),
@@ -2580,7 +2686,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:mani
     const ch = characters.find(c => c.id === (PERSONAGEM_ANTIGO[e.character] || e.character));
     if (!ch) return false;
     state.character = ch;
-    state.color = /^#[0-9a-fA-F]{6}$/.test(e.color || '') ? e.color : ch.color;
+    state.variant = Math.min(Math.max(parseInt(e.variant, 10) || 0, 0), ch.variants.length - 1);
     state.name = String(e.name || ch.name).slice(0, 30);
     state.coins = Math.max(0, Math.floor(Number(e.coins) || 0));
     state.owned = Array.isArray(e.owned) ? e.owned.filter(id => ITEMS.some(it => it.id === id)) : [];
