@@ -46,13 +46,6 @@ table{border-collapse:collapse;width:100%;min-width:720px}
 th,td{padding:8px 10px;text-align:center;border-bottom:2px solid #e9e4f5}
 th{font-size:.9rem;color:var(--muted)}
 th:first-child,td:first-child{text-align:left;font-weight:600}
-.campo-senha{position:relative;display:block}
-.campo-senha input{padding-right:58px}
-.olho{all:unset;position:absolute;top:0;bottom:0;right:6px;margin:auto 0;width:44px;height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);border-radius:10px}
-.olho:hover{background:#efe8ff}
-.olho:focus-visible{outline:4px solid var(--blue);outline-offset:0}
-.olho:active{transform:none;box-shadow:none}
-.olho svg{width:26px;height:26px;display:block}
 .link-aluno{all:unset;display:inline-block;cursor:pointer;font-weight:600;color:var(--blue);text-decoration:underline;padding:6px 2px;border-radius:6px}
 .link-aluno:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
 .link-aluno:active{transform:none;box-shadow:none}
@@ -207,32 +200,6 @@ const NOME_MAPA = { matematica: 'Matemática', portugues: 'Português', ciencias
 const FIGS = ['🐶', '🌟', '🍎', '🚀', '🌈', '🎈', '🍀', '🐢', '⚽'];
 const NOMES_FIGS = ['cachorro', 'estrela', 'maçã', 'foguete', 'arco-íris', 'balão', 'trevo', 'tartaruga', 'bola'];
 const $ = s => document.querySelector(s);
-
-// ---------- olho: mostrar ou esconder a senha digitada ----------
-const SVG_OLHO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
-const ICONE_MOSTRAR = SVG_OLHO + '<path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-const ICONE_OCULTAR = SVG_OLHO + '<path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
-function definirOlho(campo, botao, visivel) {
-  campo.type = visivel ? 'text' : 'password';
-  botao.innerHTML = visivel ? ICONE_OCULTAR : ICONE_MOSTRAR;
-  botao.setAttribute('aria-pressed', String(visivel));
-  botao.setAttribute('aria-label', visivel ? 'Esconder a senha' : 'Mostrar a senha');
-  botao.title = visivel ? 'Esconder a senha' : 'Mostrar a senha';
-}
-function adicionarOlhos() {
-  document.querySelectorAll('input[type="password"]').forEach(campo => {
-    const caixa = document.createElement('span'); caixa.className = 'campo-senha';
-    campo.parentNode.insertBefore(caixa, campo); caixa.appendChild(campo);
-    campo.setAttribute('autocapitalize', 'off'); campo.setAttribute('spellcheck', 'false');
-    const botao = document.createElement('button'); botao.type = 'button'; botao.className = 'olho';
-    botao.addEventListener('click', () => definirOlho(campo, botao, campo.type === 'password'));
-    caixa.appendChild(botao); definirOlho(campo, botao, false);
-  });
-}
-function esconderSenhas() {   // volta tudo para "escondido" (ao sair ou trocar a senha)
-  document.querySelectorAll('.campo-senha').forEach(c => definirOlho(c.querySelector('input'), c.querySelector('.olho'), false));
-}
-adicionarOlhos();
 let turmas = [], turmaAtual = null;
 
 // Nomes digitados pelos alunos entram sempre como texto (nunca como HTML).
@@ -244,7 +211,6 @@ function h(tag, props = {}, ...filhos) {
 }
 const msg = (sel, t) => { $(sel).textContent = t || ''; };
 function mostrar(painel) {
-  esconderSenhas();
   $('#solicitar').hidden = true;
   $('#login').hidden = painel;
   $('#painel').hidden = !painel;
@@ -457,7 +423,7 @@ $('#form-senha').addEventListener('submit', async e => {
   const { error } = await db.auth.updateUser({ password: a });
   $('#salvar-senha').disabled = false;
   if (error) return msg('#erro-senha', /same|different/i.test(error.message) ? 'Escolha uma senha diferente da atual.' : 'Não deu para trocar a senha. Tente de novo.');
-  $('#form-senha').reset(); esconderSenhas();
+  $('#form-senha').reset();
   msg('#ok-senha', 'Senha trocada com sucesso.');
 });
 
